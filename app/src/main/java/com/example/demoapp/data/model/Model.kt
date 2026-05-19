@@ -53,3 +53,23 @@ data class CommentDto(
 data class CreateCommentRequest(
     val content: String
 )
+data class WallPostDto(
+    val id: Long,
+    val content: String,
+    val createdAt: String,
+    val authorEmail: String,
+    val authorUsername: String,
+    val commentDto: List<CommentDto> = emptyList()
+)
+
+data class CreateWallPostRequest(
+    val content: String
+)
+data class ProfileDto(
+    val username: String,
+    val email: String,
+    val firstName: String,
+    val lastName: String,
+    val createdAt: String,
+    val posts: List<WallPostDto> = emptyList()
+)
