@@ -59,11 +59,13 @@ data class WallPostDto(
     val createdAt: String,
     val authorEmail: String,
     val authorUsername: String,
-    val commentDto: List<CommentDto> = emptyList()
+    val commentDto: List<CommentDto> = emptyList(),
+    val imageUrl: String? = null
 )
 
 data class CreateWallPostRequest(
-    val content: String
+    val content: String,
+    val imageUrl: String? = null
 )
 data class ProfileDto(
     val username: String,
@@ -71,5 +73,6 @@ data class ProfileDto(
     val firstName: String,
     val lastName: String,
     val createdAt: String,
-    val posts: List<WallPostDto> = emptyList()
+    val posts: List<WallPostDto> = emptyList(),
+    val avatarUrl: String? = null
 )

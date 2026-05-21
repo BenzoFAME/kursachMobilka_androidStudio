@@ -64,4 +64,6 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.13.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("androidx.compose.material:material-icons-extended:1.7.0")
 }

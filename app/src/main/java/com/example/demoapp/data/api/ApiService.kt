@@ -11,6 +11,7 @@ import com.example.demoapp.data.model.PostDto
 import com.example.demoapp.data.model.ProfileDto
 import com.example.demoapp.data.model.RegisterRequest
 import com.example.demoapp.data.model.WallPostDto
+import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.Response
 import retrofit2.http.*
@@ -104,4 +105,16 @@ interface ApiService {
 
     @GET("wall/user/{email}")
     suspend fun getWallPostsByEmail(@Path("email") email: String): Response<List<WallPostDto>>
+
+    @Multipart
+    @POST("files/upload")
+    suspend fun uploadFile(
+        @Part file: MultipartBody.Part
+    ): Response<Map<String, String>>
+
+    @Multipart
+    @POST("profile/avatar")
+    suspend fun uploadAvatar(
+        @Part file: MultipartBody.Part
+    ): Response<Map<String, String>>
 }

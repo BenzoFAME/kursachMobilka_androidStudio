@@ -1,17 +1,19 @@
 package com.example.demoapp.ui.theme.viewmodel
 
-
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.demoapp.data.api.RetrofitClient
 import com.example.demoapp.data.model.ProfileDto
-
 import com.example.demoapp.data.model.WallPostDto
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.toRequestBody
 
 class ProfileViewModel(private val email: String?) : ViewModel() {
     private val _profile = MutableStateFlow<ProfileDto?>(null)
@@ -34,6 +36,21 @@ class ProfileViewModel(private val email: String?) : ViewModel() {
             }
         } catch (e: Exception) {
             _error.value = "Ошибка: ${e.message}"
+        }
+    }
+
+
+    fun uploadAvatar(uri: Uri, context: Context) = viewModelScope.launch {
+        try {
+            val bytes = context.contentResolver.openInputStream(uri)!!.readBytes()
+            val part = MultipartBody.Part.createFormData(
+                "file", "avatar.jpg",
+                bytes.toRequestBody("image/jpeg".toMediaType())
+            )
+            val r = RetrofitClient.api.uploadAvatar(part)
+            if (r.isSuccessful) load()
+        } catch (e: Exception) {
+            _error.value = "Ошибка загрузки аватарки: ${e.message}"
         }
     }
 }
