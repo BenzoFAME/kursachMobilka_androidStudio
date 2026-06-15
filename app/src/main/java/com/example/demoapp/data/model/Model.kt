@@ -68,6 +68,7 @@ data class CreateWallPostRequest(
     val imageUrl: String? = null
 )
 data class ProfileDto(
+    val id: Long = 0,
     val username: String,
     val email: String,
     val firstName: String,

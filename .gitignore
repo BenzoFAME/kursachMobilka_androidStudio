@@ -13,3 +13,6 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Firebase config — каждый добавляет свой (см. FIREBASE_SETUP.md)
+app/google-services.json

@@ -10,7 +10,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -22,6 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.demoapp.data.api.RetrofitClient
 import com.example.demoapp.ui.theme.viewmodel.ProfileViewModel
 import com.example.demoapp.ui.theme.viewmodel.ProfileViewModelFactory
 
@@ -30,6 +32,7 @@ import com.example.demoapp.ui.theme.viewmodel.ProfileViewModelFactory
 fun ProfileScreen(
     email: String?,
     onBack: () -> Unit,
+    onWriteMessage: (String) -> Unit = {},
     vm: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(email))
 ) {
     val profile by vm.profile.collectAsState()
@@ -49,7 +52,7 @@ fun ProfileScreen(
                 title = { Text(if (email == null) "Мой профиль" else "Профиль") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Назад")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад")
                     }
                 }
             )
@@ -71,7 +74,7 @@ fun ProfileScreen(
                             // Аватарка
                             if (p.avatarUrl != null) {
                                 AsyncImage(
-                                    model = "http://10.0.2.2:8080${p.avatarUrl}",
+                                    model = RetrofitClient.BASE_URL.trimEnd('/') + p.avatarUrl,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .size(80.dp)
@@ -100,6 +103,17 @@ fun ProfileScreen(
                                     onClick = { avatarLauncher.launch("image/*") }
                                 ) {
                                     Text("Сменить аватарку")
+                                }
+                            } else {
+                                // Чужой профиль — кнопка "Написать сообщение"
+                                Button(onClick = { onWriteMessage(email) }) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.Chat,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Написать сообщение")
                                 }
                             }
 
@@ -151,7 +165,7 @@ fun ProfileScreen(
                             if (post.imageUrl != null) {
                                 Spacer(Modifier.height(4.dp))
                                 AsyncImage(
-                                    model = "http://10.0.2.2:8080${post.imageUrl}",
+                                    model = RetrofitClient.BASE_URL.trimEnd('/') + post.imageUrl,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .fillMaxWidth()
