@@ -1,8 +1,11 @@
 package com.example.demoapp.ui.theme.viewmodel
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.demoapp.data.api.RetrofitClient
+import com.example.demoapp.data.local.Session
+import com.example.demoapp.data.local.TokenStore
 import com.example.demoapp.data.model.LoginRequest
 import com.example.demoapp.data.model.RegisterRequest
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,16 +18,23 @@ data class AuthState(
     val error: String? = null
 )
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(app: Application) : AndroidViewModel(app) {
     private val _state = MutableStateFlow(AuthState())
     val state: StateFlow<AuthState> = _state
+
+    private val tokenStore = TokenStore(app)
 
     fun login(email: String, password: String) = viewModelScope.launch {
         _state.value = AuthState(isLoading = true)
         try {
             val response = RetrofitClient.api.login(LoginRequest(email, password))
             if (response.isSuccessful) {
-                response.body()?.let { RetrofitClient.setToken(it.accessToken) }
+                response.body()?.let { body ->
+                    RetrofitClient.setToken(body.accessToken)
+                    Session.updateFromJwt(body.accessToken)
+                    Session.setEmail(email)
+                    tokenStore.save(body.accessToken, body.refreshToken, email)
+                }
                 _state.value = AuthState(isSuccess = true)
             } else {
                 _state.value = AuthState(error = "Неверный email или пароль")
@@ -44,7 +54,12 @@ class AuthViewModel : ViewModel() {
                 RegisterRequest(username, email, firstName, lastName, password)
             )
             if (response.isSuccessful) {
-                response.body()?.let { RetrofitClient.setToken(it.accessToken) }
+                response.body()?.let { body ->
+                    RetrofitClient.setToken(body.accessToken)
+                    Session.updateFromJwt(body.accessToken)
+                    Session.setEmail(email)
+                    tokenStore.save(body.accessToken, body.refreshToken, email)
+                }
                 _state.value = AuthState(isSuccess = true)
             } else {
                 _state.value = AuthState(error = "Ошибка регистрации")

@@ -22,6 +22,10 @@ interface ApiService {
     @POST("auth/register")
     suspend fun register(@Body request: RegisterRequest): Response<JwtResponse>
 
+    // Firebase custom token (для входа в Firebase Auth и работы чата)
+    @GET("firebase/token")
+    suspend fun getFirebaseToken(): Response<Map<String, String>>
+
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<JwtResponse>
 
@@ -102,6 +106,10 @@ interface ApiService {
     // Profile
     @GET("profile")
     suspend fun getMyProfile(): Response<ProfileDto>
+
+    // Lookup пользователя по email (для начала чата — возвращает uid)
+    @GET("profile/lookup/{email}")
+    suspend fun lookupUser(@Path("email") email: String): Response<Map<String, String>>
 
     @GET("wall/user/{email}")
     suspend fun getWallPostsByEmail(@Path("email") email: String): Response<List<WallPostDto>>

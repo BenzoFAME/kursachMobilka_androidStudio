@@ -1,0 +1,36 @@
+rules_version = '2';
+
+// Правила безопасности Firestore для чата.
+// Скопируй их в Firebase Console -> Firestore Database -> Rules -> Publish.
+//
+// Логика: писать/читать диалог может только его участник (его uid есть в participants).
+// Отправлять сообщение можно только от своего имени (senderUid == свой uid).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /chats/{chatId} {
+      // читать/изменять документ диалога — только участники
+      allow read, update, delete: if request.auth != null
+        && request.auth.uid in resource.data.participants;
+
+      // создавать диалог — только если создатель сам входит в participants
+      allow create: if request.auth != null
+        && request.auth.uid in request.resource.data.participants;
+
+      match /messages/{messageId} {
+        // читать сообщения — только участники диалога
+        allow read: if request.auth != null
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
+
+        // создавать сообщение — только участник и только от своего имени
+        allow create: if request.auth != null
+          && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants
+          && request.resource.data.senderUid == request.auth.uid;
+
+        // сообщения не редактируем и не удаляем (можно расширить при желании)
+        allow update, delete: if false;
+      }
+    }
+  }
+}

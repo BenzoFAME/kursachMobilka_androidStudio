@@ -1,10 +1,16 @@
 package com.example.demoapp.ui.theme.screens
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import com.example.demoapp.data.local.Session
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
@@ -22,31 +28,35 @@ object Routes {
     const val COMMENTS = "comments/{postId}"
     const val WALL_COMMENTS = "wall_comments/{wallPostId}"
     const val USER_PROFILE = "profile/user/{email}"
+    const val CHATS = "chats"
+    const val CHAT = "chat/{chatId}/{otherEmail}"
 
     fun posts(channelId: Long) = "posts/$channelId"
     fun comments(postId: Long) = "comments/$postId"
     fun wallComments(wallPostId: Long) = "wall_comments/$wallPostId"
     fun userProfile(email: String) = "profile/user/$email"
+    fun chat(chatId: String, otherEmail: String) = "chat/$chatId/$otherEmail"
 }
 
 // Элементы нижней навигации
 sealed class BottomNavItem(val route: String, val label: String, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     object Wall     : BottomNavItem(Routes.WALL,       "Стена",   Icons.Default.Home)
     object Channels : BottomNavItem(Routes.CHANNELS,   "Каналы",  Icons.Default.List)
+    object Chats    : BottomNavItem(Routes.CHATS,      "Чаты",    Icons.AutoMirrored.Filled.Chat)
     object Profile  : BottomNavItem(Routes.MY_PROFILE, "Профиль", Icons.Default.AccountCircle)
 }
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(startLoggedIn: Boolean = false) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     // Маршруты где показывается нижняя навигация
-    val bottomNavRoutes = listOf(Routes.WALL, Routes.CHANNELS, Routes.MY_PROFILE)
+    val bottomNavRoutes = listOf(Routes.WALL, Routes.CHANNELS, Routes.CHATS, Routes.MY_PROFILE)
     val showBottomBar = currentDestination?.route in bottomNavRoutes
 
-    val bottomItems = listOf(BottomNavItem.Wall, BottomNavItem.Channels, BottomNavItem.Profile)
+    val bottomItems = listOf(BottomNavItem.Wall, BottomNavItem.Channels, BottomNavItem.Chats, BottomNavItem.Profile)
 
     Scaffold(
         bottomBar = {
@@ -74,7 +84,7 @@ fun AppNavigation() {
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.LOGIN,
+            startDestination = if (startLoggedIn) Routes.WALL else Routes.LOGIN,
             modifier = androidx.compose.ui.Modifier.padding(padding)
         ) {
             composable(Routes.LOGIN) {
@@ -149,6 +159,51 @@ fun AppNavigation() {
                 val email = backStack.arguments?.getString("email") ?: return@composable
                 ProfileScreen(
                     email = email,
+                    onBack = { navController.popBackStack() },
+                    onWriteMessage = { otherEmail ->
+                        navController.navigate("chats_open/$otherEmail")
+                    }
+                )
+            }
+
+            // Список диалогов
+            composable(Routes.CHATS) {
+                ChatListScreen(
+                    myEmail = Session.myEmail ?: "",
+                    onOpenChat = { chatId, otherEmail ->
+                        navController.navigate(Routes.chat(chatId, otherEmail))
+                    }
+                )
+            }
+
+            // Открытие диалога по email (с экрана профиля): создаём/находим и переходим
+            composable("chats_open/{otherEmail}") { backStack ->
+                val otherEmail = backStack.arguments?.getString("otherEmail") ?: return@composable
+                val chatVm: com.example.demoapp.ui.theme.viewmodel.ChatViewModel =
+                    androidx.lifecycle.viewmodel.compose.viewModel()
+                LaunchedEffect(otherEmail) {
+                    chatVm.openConversationByEmail(
+                        otherEmail = otherEmail,
+                        myEmail = Session.myEmail ?: ""
+                    ) { chatId ->
+                        navController.navigate(Routes.chat(chatId, otherEmail)) {
+                            popUpTo("chats_open/$otherEmail") { inclusive = true }
+                        }
+                    }
+                }
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            // Экран переписки
+            composable(Routes.CHAT) { backStack ->
+                val chatId = backStack.arguments?.getString("chatId") ?: return@composable
+                val otherEmail = backStack.arguments?.getString("otherEmail") ?: ""
+                ChatScreen(
+                    chatId = chatId,
+                    otherEmail = otherEmail,
+                    myEmail = Session.myEmail ?: "",
                     onBack = { navController.popBackStack() }
                 )
             }

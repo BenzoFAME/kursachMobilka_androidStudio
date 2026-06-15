@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.demoapp.data.api.RetrofitClient
 import com.example.demoapp.data.model.WallPostDto
 import com.example.demoapp.ui.theme.viewmodel.WallViewModel
 
@@ -126,7 +127,7 @@ fun WallPostItem(
         if (post.imageUrl != null) {
             Spacer(Modifier.height(8.dp))
             AsyncImage(
-                model = "http://10.0.2.2:8080${post.imageUrl}",
+                model = RetrofitClient.BASE_URL.trimEnd('/') + post.imageUrl,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()
