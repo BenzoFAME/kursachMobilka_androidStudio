@@ -27,7 +27,12 @@ class ProfileViewModel(private val email: String?) : ViewModel() {
 
     fun load() = viewModelScope.launch {
         try {
-            val r = RetrofitClient.api.getMyProfile()
+            // email == null — мой профиль; иначе — профиль другого пользователя по email
+            val r = if (email == null) {
+                RetrofitClient.api.getMyProfile()
+            } else {
+                RetrofitClient.api.getUserProfile(email)
+            }
             if (r.isSuccessful) {
                 _profile.value = r.body()
                 _posts.value = r.body()?.posts ?: emptyList()

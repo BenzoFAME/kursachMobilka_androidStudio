@@ -107,6 +107,10 @@ interface ApiService {
     @GET("profile")
     suspend fun getMyProfile(): Response<ProfileDto>
 
+    // Полный профиль другого пользователя по email
+    @GET("profile/user/{email}")
+    suspend fun getUserProfile(@Path("email") email: String): Response<ProfileDto>
+
     // Lookup пользователя по email (для начала чата — возвращает uid)
     @GET("profile/lookup/{email}")
     suspend fun lookupUser(@Path("email") email: String): Response<Map<String, String>>

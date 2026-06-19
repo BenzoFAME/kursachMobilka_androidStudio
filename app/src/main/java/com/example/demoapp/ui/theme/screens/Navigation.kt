@@ -34,7 +34,8 @@ object Routes {
     fun posts(channelId: Long) = "posts/$channelId"
     fun comments(postId: Long) = "comments/$postId"
     fun wallComments(wallPostId: Long) = "wall_comments/$wallPostId"
-    fun userProfile(email: String) = "profile/user/$email"
+    fun userProfile(email: String) =
+        "profile/user/" + java.net.URLEncoder.encode(email, "UTF-8")
     fun chat(chatId: String, otherEmail: String) = "chat/$chatId/$otherEmail"
 }
 
@@ -163,7 +164,8 @@ fun AppNavigation(startLoggedIn: Boolean = false) {
             }
 
             composable(Routes.USER_PROFILE) { backStack ->
-                val email = backStack.arguments?.getString("email") ?: return@composable
+                val rawEmail = backStack.arguments?.getString("email") ?: return@composable
+                val email = java.net.URLDecoder.decode(rawEmail, "UTF-8")
                 ProfileScreen(
                     email = email,
                     onBack = { navController.popBackStack() },
