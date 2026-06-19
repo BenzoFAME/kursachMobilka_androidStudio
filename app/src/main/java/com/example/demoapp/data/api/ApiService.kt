@@ -9,6 +9,7 @@ import com.example.demoapp.data.model.JwtResponse
 import com.example.demoapp.data.model.LoginRequest
 import com.example.demoapp.data.model.PostDto
 import com.example.demoapp.data.model.ProfileDto
+import com.example.demoapp.data.model.RefreshRequest
 import com.example.demoapp.data.model.RegisterRequest
 import com.example.demoapp.data.model.WallPostDto
 import okhttp3.MultipartBody
@@ -28,6 +29,10 @@ interface ApiService {
 
     @POST("auth/login")
     suspend fun login(@Body request: LoginRequest): Response<JwtResponse>
+
+    // Обновление access-токена по refresh-токену
+    @POST("auth/refreshToken")
+    suspend fun refreshToken(@Body request: RefreshRequest): Response<JwtResponse>
 
     // Channels
     @GET("channels")

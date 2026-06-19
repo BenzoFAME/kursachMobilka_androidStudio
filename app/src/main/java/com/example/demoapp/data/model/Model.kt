@@ -18,6 +18,11 @@ data class JwtResponse(
     val refreshToken: String
 )
 
+// Тело запроса на обновление токена
+data class RefreshRequest(
+    val refreshToken: String
+)
+
 data class ChannelDto(
     val id: Long,
     val name: String,

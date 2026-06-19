@@ -32,6 +32,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             if (response.isSuccessful) {
                 response.body()?.let { body ->
                     RetrofitClient.setToken(body.accessToken)
+                    RetrofitClient.setRefreshToken(body.refreshToken)
                     Session.updateFromJwt(body.accessToken)
                     Session.setEmail(email)
                     tokenStore.save(body.accessToken, body.refreshToken, email)
@@ -77,6 +78,7 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
             if (response.isSuccessful) {
                 response.body()?.let { body ->
                     RetrofitClient.setToken(body.accessToken)
+                    RetrofitClient.setRefreshToken(body.refreshToken)
                     Session.updateFromJwt(body.accessToken)
                     Session.setEmail(email)
                     tokenStore.save(body.accessToken, body.refreshToken, email)

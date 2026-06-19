@@ -32,6 +32,9 @@ class TokenStore(private val context: Context) {
     suspend fun getAccessToken(): String? =
         context.dataStore.data.map { it[ACCESS] }.first()
 
+    suspend fun getRefreshToken(): String? =
+        context.dataStore.data.map { it[REFRESH] }.first()
+
     suspend fun getEmail(): String? =
         context.dataStore.data.map { it[EMAIL] }.first()
 
