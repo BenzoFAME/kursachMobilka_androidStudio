@@ -125,7 +125,14 @@ fun AppNavigation(startLoggedIn: Boolean = false) {
             composable(Routes.MY_PROFILE) {
                 ProfileScreen(
                     email = null,
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onLogout = {
+                        navController.navigate(Routes.LOGIN) {
+                            // Чистим весь back stack, чтобы нельзя было вернуться назад
+                            popUpTo(navController.graph.id) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
 

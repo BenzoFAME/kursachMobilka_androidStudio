@@ -41,6 +41,12 @@ object RetrofitClient {
         _api = buildApi()
     }
 
+    /** Полностью убирает токен (при выходе из аккаунта), чтобы больше не слать Authorization. */
+    fun clearToken() {
+        token = null
+        _api = buildApi()
+    }
+
     fun getToken(): String? = token
 
     private fun buildApi(): ApiService {

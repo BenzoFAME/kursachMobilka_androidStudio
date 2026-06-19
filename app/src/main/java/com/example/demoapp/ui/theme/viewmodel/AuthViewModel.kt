@@ -8,6 +8,7 @@ import com.example.demoapp.data.local.Session
 import com.example.demoapp.data.local.TokenStore
 import com.example.demoapp.data.model.LoginRequest
 import com.example.demoapp.data.model.RegisterRequest
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -42,6 +43,26 @@ class AuthViewModel(app: Application) : AndroidViewModel(app) {
         } catch (e: Exception) {
             _state.value = AuthState(error = "Ошибка соединения: ${e.message}")
         }
+    }
+
+    /**
+     * Выход из аккаунта: чистим токены на устройстве (DataStore),
+     * сессию в памяти, токен в Retrofit и выходим из Firebase.
+     */
+    fun logout(onDone: () -> Unit = {}) = viewModelScope.launch {
+        try {
+            tokenStore.clear()
+        } catch (_: Exception) {
+        }
+        RetrofitClient.clearToken()
+        Session.clear()
+        try {
+            FirebaseAuth.getInstance().signOut()
+        } catch (_: Exception) {
+            // Firebase мог быть не инициализирован — это не критично для выхода
+        }
+        _state.value = AuthState()
+        onDone()
     }
 
     fun register(

@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.demoapp.data.api.RetrofitClient
+import com.example.demoapp.ui.theme.viewmodel.AuthViewModel
 import com.example.demoapp.ui.theme.viewmodel.ProfileViewModel
 import com.example.demoapp.ui.theme.viewmodel.ProfileViewModelFactory
 
@@ -33,8 +35,11 @@ fun ProfileScreen(
     email: String?,
     onBack: () -> Unit,
     onWriteMessage: (String) -> Unit = {},
+    onLogout: () -> Unit = {},
     vm: ProfileViewModel = viewModel(factory = ProfileViewModelFactory(email))
 ) {
+    val authVm: AuthViewModel = viewModel()
+    var showLogoutDialog by remember { mutableStateOf(false) }
     val profile by vm.profile.collectAsState()
     val posts by vm.posts.collectAsState()
     val error by vm.error.collectAsState()
@@ -131,6 +136,25 @@ fun ProfileScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
+
+                            // Кнопка выхода — только на своём профиле
+                            if (email == null) {
+                                Spacer(Modifier.height(8.dp))
+                                OutlinedButton(
+                                    onClick = { showLogoutDialog = true },
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = MaterialTheme.colorScheme.error
+                                    )
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.Logout,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Выйти из аккаунта")
+                                }
+                            }
                         }
                     }
                 } ?: CircularProgressIndicator(Modifier.padding(32.dp))
@@ -189,5 +213,22 @@ fun ProfileScreen(
                 item { Text(it, color = MaterialTheme.colorScheme.error) }
             }
         }
+    }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Выход") },
+            text = { Text("Выйти из аккаунта?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    showLogoutDialog = false
+                    authVm.logout { onLogout() }
+                }) { Text("Выйти", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) { Text("Отмена") }
+            }
+        )
     }
 }
