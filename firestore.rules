@@ -10,8 +10,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     match /chats/{chatId} {
-      // читать/изменять документ диалога — только участники
-      allow read, update, delete: if request.auth != null
+      // читать документ диалога — участники; или если документа ещё нет
+      // (приложение делает get() перед созданием — чтение несуществующего должно быть разрешено)
+      allow read: if request.auth != null
+        && (resource == null || request.auth.uid in resource.data.participants);
+
+      // изменять/удалять документ диалога — только участники
+      allow update, delete: if request.auth != null
         && request.auth.uid in resource.data.participants;
 
       // создавать диалог — только если создатель сам входит в participants
