@@ -1,8 +1,12 @@
 package com.example.demoapp.ui.theme.screens
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.material.icons.Icons
@@ -170,7 +174,8 @@ fun AppNavigation(startLoggedIn: Boolean = false) {
                     email = email,
                     onBack = { navController.popBackStack() },
                     onWriteMessage = { otherEmail ->
-                        navController.navigate("chats_open/$otherEmail")
+                        val enc = java.net.URLEncoder.encode(otherEmail, "UTF-8")
+                        navController.navigate("chats_open/$enc")
                     }
                 )
             }
@@ -187,21 +192,42 @@ fun AppNavigation(startLoggedIn: Boolean = false) {
 
             // Открытие диалога по email (с экрана профиля): создаём/находим и переходим
             composable("chats_open/{otherEmail}") { backStack ->
-                val otherEmail = backStack.arguments?.getString("otherEmail") ?: return@composable
+                val rawOther = backStack.arguments?.getString("otherEmail") ?: return@composable
+                val otherEmail = java.net.URLDecoder.decode(rawOther, "UTF-8")
                 val chatVm: com.example.demoapp.ui.theme.viewmodel.ChatViewModel =
                     androidx.lifecycle.viewmodel.compose.viewModel()
+                val openError by chatVm.error.collectAsState()
                 LaunchedEffect(otherEmail) {
                     chatVm.openConversationByEmail(
                         otherEmail = otherEmail,
                         myEmail = Session.myEmail ?: ""
                     ) { chatId ->
                         navController.navigate(Routes.chat(chatId, otherEmail)) {
-                            popUpTo("chats_open/$otherEmail") { inclusive = true }
+                            popUpTo("chats_open/$rawOther") { inclusive = true }
                         }
                     }
                 }
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+                    val err = openError
+                    if (err == null) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator()
+                            Spacer(Modifier.height(12.dp))
+                            Text("Открываем диалог…")
+                        }
+                    } else {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(24.dp)
+                        ) {
+                            Text(err, color = MaterialTheme.colorScheme.error)
+                            Spacer(Modifier.height(16.dp))
+                            Button(onClick = {
+                                chatVm.clearError()
+                                navController.popBackStack()
+                            }) { Text("Назад") }
+                        }
+                    }
                 }
             }
 
